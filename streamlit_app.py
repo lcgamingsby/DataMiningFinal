@@ -150,6 +150,18 @@ st.write("Explained Variance Ratio:", pca.explained_variance_ratio_)
 st.subheader("Exchange Rate Prediction Visualization")
 fig, ax = plt.subplots(figsize=(10, 6))
 ax.plot(df["date"], best_model.predict(X), label="Predicted Rates", color="red", linewidth=2)
-st.pyplot(fig)
+ax.plot(df["date"], best_model.predict(X), label="Predicted Rates", color="red", linewidth=2)
 
+# Plot future predictions with 'X' marker
+ax.scatter(future_dates, future_predictions, color="green", label="Predicted Next Month", marker='x', s=100)
+
+# Labels and title
+ax.set_xlabel("Date")
+ax.set_ylabel(f"Exchange Rate ({base_currency} to {target_currency})")
+ax.set_title(f"Exchange Rate Prediction: {base_currency} to {target_currency}")
+
+# Legend and grid
+ax.legend()
+ax.grid(True)
+st.pyplot(fig)
 
