@@ -150,10 +150,26 @@ st.write("Explained Variance Ratio:", pca.explained_variance_ratio_)
 st.subheader("Exchange Rate Prediction Visualization")
 fig, ax = plt.subplots(figsize=(10, 6))
 ax.plot(df["date"], best_model.predict(X), label="Predicted Rates", color="red", linewidth=2)
-ax.plot(df["date"], best_model.predict(X), label="Predicted Rates", color="red", linewidth=2)
 
-# Plot future predictions with 'X' marker
-ax.scatter(future_dates, future_predictions, color="green", label="Predicted Next Month", marker='x', s=100)
+# Step 1: Generate Future Dates (Next 30 Days)
+future_dates = pd.date_range(df["date"].max() + timedelta(days=1), periods=30).strftime('%Y-%m-%d')
+
+# Step 2: Feature Engineering for Future Dates
+future_df = pd.DataFrame(future_dates, columns=["date"])
+future_df["date"] = pd.to_datetime(future_df["date"])
+future_df["year"] = future_df["date"].dt.year
+future_df["month"] = future_df["date"].dt.month
+future_df["day"] = future_df["date"].dt.day
+
+# Step 3: Make Predictions for Future Dates
+future_X = future_df[["year", "month", "day"]]
+future_predictions = best_model.predict(future_X)
+
+# Step 4: Visualize Predictions with Markers
+st.subheader("Exchange Rate Prediction for Next Month")
+
+# Plot the historical data and predictions
+ax.plot(future_df["date"], future_predictions, label="Predicted Rates (Next Month)", color="blue", marker="o", markersize=5, linestyle="--")
 
 # Labels and title
 ax.set_xlabel("Date")
@@ -163,5 +179,6 @@ ax.set_title(f"Exchange Rate Prediction: {base_currency} to {target_currency}")
 # Legend and grid
 ax.legend()
 ax.grid(True)
-st.pyplot(fig)
 
+# Show the plot in Streamlit
+st.pyplot(fig)
