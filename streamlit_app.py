@@ -165,11 +165,8 @@ future_df["day"] = future_df["date"].dt.day
 future_X = future_df[["year", "month", "day"]]
 future_predictions = best_model.predict(future_X)
 
-# Step 4: Visualize Predictions with Markers
-st.subheader("Exchange Rate Prediction for Next Month")
-
 # Plot the historical data and predictions
-ax.plot(future_df["date"], future_predictions, label="Predicted Rates (Next Month)", color="blue", marker="o", markersize=5, linestyle="--")
+ax.plot(future_df["date"], future_predictions, label="Predicted Rates (Next Month)", color="blue", markersize=5, linestyle="-")
 
 # Labels and title
 ax.set_xlabel("Date")
