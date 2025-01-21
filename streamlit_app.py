@@ -166,7 +166,7 @@ future_X = future_df[["year", "month", "day"]]
 future_predictions = best_model.predict(future_X)
 
 # Plot the historical data and predictions
-ax.plot(future_df["date"], future_predictions, label="Predicted Rates (Next Month)", marker="•", color="blue", markersize=5, linestyle="-")
+ax.plot(future_df["date"], future_predictions, label="Predicted Rates (Next Month)", marker="•", color="blue", markersize=5, linestyle="--")
 
 # Labels and title
 ax.set_xlabel("Date")
