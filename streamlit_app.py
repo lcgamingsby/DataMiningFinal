@@ -48,14 +48,17 @@ start_date = (end_date - timedelta(days=365)).strftime("%Y-%m-%d")
 
 df = fetch_exchange_rate(api_url, api_key, base_currency, target_currency, start_date, end_date)
 
-if df is not None:
-    # Data Cleaning
-def clean_data(data):
-        data["date"] = pd.to_datetime(data["date"])
-        data.sort_values(by="date", inplace=True)
-        return data
+if base_currency and target_currency:
+    df = fetch_exchange_rate(api_url, api_key, base_currency, target_currency, start_date, end_date)
+    
+    if df is not None:
+        # Data Cleaning
+        def clean_data(data):
+            data["date"] = pd.to_datetime(data["date"])
+            data.sort_values(by="date", inplace=True)
+            return data
 
-df = clean_data(df)
+        df = clean_data(df)
 
 # EDA
 def exploratory_data_analysis(data):
