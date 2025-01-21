@@ -46,94 +46,103 @@ api_key = st.secrets["API_KEY"]  # Use Streamlit Secrets for security
 end_date = datetime.now().date()
 start_date = (end_date - timedelta(days=365)).strftime("%Y-%m-%d")
 
-if base_currency and target_currency:
-    df = fetch_exchange_rate(api_url, api_key, base_currency, target_currency, start_date, end_date)
+df = fetch_exchange_rate(api_url, api_key, base_currency, target_currency, start_date, end_date)
 
-    if df is not None:
-        # Data Cleaning
-        def clean_data(data):
-            data["date"] = pd.to_datetime(data["date"])
-            data.sort_values(by="date", inplace=True)
-            return data
+if df is not None:
+    # Data Cleaning
+def clean_data(data):
+        data["date"] = pd.to_datetime(data["date"])
+        data.sort_values(by="date", inplace=True)
+        return data
 
-        df = clean_data(df)
+df = clean_data(df)
 
-        # Exploratory Data Analysis (EDA)
-        def exploratory_data_analysis(data):
-            st.subheader("Data Summary")
-            st.write(data.describe())
-
-            st.subheader("Exchange Rate Distribution")
-            fig, ax = plt.subplots()
-            sns.histplot(data["rate"], kde=True, bins=30, ax=ax, color="green")
-            st.pyplot(fig)
-
-        exploratory_data_analysis(df)
-
-        # Feature Engineering
-        def create_features(data):
-            data["year"] = data["date"].dt.year
-            data["month"] = data["date"].dt.month
-            data["day"] = data["date"].dt.day
-            return data
-
-        df = create_features(df)
-
-        # Define features and target
-        X = df[["year", "month", "day"]]
-        y = df["rate"]
-
-        # Train-Test Split
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-        # Train Regression Model
-        rf = RandomForestRegressor(random_state=42)
-        param_grid = {"n_estimators": [50, 100, 150], "max_depth": [None, 10, 20]}
-        grid_search = GridSearchCV(rf, param_grid, cv=3, scoring="neg_mean_squared_error")
-        grid_search.fit(X_train, y_train)
-
-        best_model = grid_search.best_estimator_
-        y_pred = best_model.predict(X_test)
-
-        # Evaluate Model
-        mse = mean_squared_error(y_test, y_pred)
-        r2 = r2_score(y_test, y_pred)
-
-        st.subheader("Model Evaluation")
-        st.write(f"Mean Squared Error: {mse}")
-        st.write(f"R^2 Score: {r2}")
-
-        # Prediction for the Next Month
-        def predict_next_month(model, last_date, months=1):
-            future_dates = []
-            for month in range(1, months + 1):
-                future_date = last_date + timedelta(days=30 * month)
-                future_dates.append(future_date)
-
-            future_features = pd.DataFrame({
-                "year": [date.year for date in future_dates],
-                "month": [date.month for date in future_dates],
-                "day": [date.day for date in future_dates]
-            })
-
-            future_predictions = model.predict(future_features)
-            return future_dates, future_predictions
-
-        last_date = df["date"].max()
-        future_dates, future_predictions = predict_next_month(best_model, last_date)
-
-        st.subheader(f"Predicted Exchange Rates for {base_currency} to {target_currency}")
-        future_df = pd.DataFrame({"Date": future_dates, "Predicted Rate": future_predictions})
-        st.write(future_df)
-
-        # Visualization
-        st.subheader("Exchange Rate Prediction Visualization")
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(df["date"], best_model.predict(X), label="Predicted Rates", color="red", linewidth=2)
-        ax.scatter(future_dates, future_predictions, color="green", label="Predicted Next Month", marker="x")
-        ax.set_xlabel("Date")
-        ax.set_ylabel(f"Exchange Rate ({base_currency} to {target_currency})")
-        ax.set_title(f"Exchange Rate Prediction: {base_currency} to {target_currency}")
-        ax.legend()
+# EDA
+def exploratory_data_analysis(data):
+        st.subheader("Data Summary")
+        st.write(data.describe())
+        
+        st.subheader("Exchange Rate Distribution")
+        fig, ax = plt.subplots()
+        sns.histplot(data["rate"], kde=True, bins=30, ax=ax, color="green")
         st.pyplot(fig)
+
+exploratory_data_analysis(df)
+
+# Feature Engineering
+def create_features(data):
+        data["year"] = data["date"].dt.year
+        data["month"] = data["date"].dt.month
+        data["day"] = data["date"].dt.day
+        return data
+
+df = create_features(df)
+
+# Clustering - Elbow Method
+st.subheader("Clustering Analysis")
+X_cluster = df[['rate']]
+inertia = []
+for k in range(1, 11):
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    kmeans.fit(X_cluster)
+    inertia.append(kmeans.inertia_)
+
+plt.figure(figsize=(8, 5))
+plt.plot(range(1, 11), inertia, marker='o')
+plt.title('Elbow Method for Optimal K')
+plt.xlabel('Number of Clusters')
+plt.ylabel('Inertia')
+st.pyplot(plt)
+
+# Apply optimal clustering
+df['Cluster'] = KMeans(n_clusters=3, random_state=42).fit_predict(X_cluster)
+st.write(df.head())
+
+# Define features and target for regression
+X = df[["year", "month", "day"]]
+y = df["rate"]
+
+# Train-Test Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train Regression Model
+rf = RandomForestRegressor(random_state=42)
+param_grid = {"n_estimators": [50, 100, 150], "max_depth": [None, 10, 20]}
+grid_search = GridSearchCV(rf, param_grid, cv=3, scoring="neg_mean_squared_error")
+grid_search.fit(X_train, y_train)
+
+best_model = grid_search.best_estimator_
+y_pred = best_model.predict(X_test)
+
+# Evaluate Model
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+st.subheader("Model Evaluation")
+st.write(f"Mean Squared Error: {mse}")
+st.write(f"R^2 Score: {r2}")
+
+# Classification Model
+df['label'] = (df['rate'].diff() > 0).astype(int)
+X_class = df[['year', 'month', 'day']]
+y_class = df['label']
+
+X_train_cls, X_test_cls, y_train_cls, y_test_cls = train_test_split(X_class, y_class, test_size=0.2, random_state=42)
+clf = RandomForestClassifier(random_state=42)
+clf.fit(X_train_cls, y_train_cls)
+y_pred_cls = clf.predict(X_test_cls)
+st.subheader("Classification Report")
+st.text(classification_report(y_test_cls, y_pred_cls))
+
+# PCA for Dimensionality Reduction
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X)
+st.write("Explained Variance Ratio:", pca.explained_variance_ratio_)
+
+# Visualization
+st.subheader("Exchange Rate Prediction Visualization")
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.plot(df["date"], best_model.predict(X), label="Predicted Rates", color="red", linewidth=2)
+st.pyplot(fig)
+
 
