@@ -98,15 +98,10 @@ if base_currency and target_currency:
         # Evaluate Model
         mse = mean_squared_error(y_test, y_pred)
         r2 = r2_score(y_test, y_pred)
-        mae = mean_absolute_error(y_test, y_pred)
 
         st.subheader("Model Evaluation")
         st.write(f"Mean Squared Error: {mse}")
         st.write(f"R^2 Score: {r2}")
-        st.write(f"Mean Absolute Error: {mae}")
-
-        accuracy = 100 - (mae / y_test.mean()) * 100
-        st.write(f"Prediction Accuracy: {accuracy:.2f}%")
 
         # Prediction for the Next Month
         def predict_next_month(model, last_date, months=1):
