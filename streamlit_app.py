@@ -48,7 +48,7 @@ def fetch_exchange_rate(api_url, api_key, base_currency, target_currency, start_
 api_url = "https://api.apilayer.com/exchangerates_data"
 api_key = st.secrets["API_KEY"]  # Use Streamlit Secrets for security
 end_date = datetime.now().date()
-start_date = (end_date - timedelta(days=365)).strftime("%Y-%m-%d")
+start_date = (end_date - timedelta(days=3 * 365)).strftime("%Y-%m-%d")
 
 df = fetch_exchange_rate(api_url, api_key, base_currency, target_currency, start_date, end_date)
 
