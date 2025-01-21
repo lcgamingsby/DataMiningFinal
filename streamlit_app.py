@@ -149,7 +149,7 @@ st.write("Explained Variance Ratio:", pca.explained_variance_ratio_)
 # Visualization
 st.subheader("Exchange Rate Prediction Visualization")
 fig, ax = plt.subplots(figsize=(10, 6))
-ax.plot(df["date"], best_model.predict(X), label="Predicted Rates", color="red", linewidth=2)
+ax.plot(df["date"], best_model.predict(X), label="Actual Rates", color="red", linewidth=2)
 
 # Step 1: Generate Future Dates (Next 30 Days)
 future_dates = pd.date_range(df["date"].max() + timedelta(days=1), periods=30).strftime('%Y-%m-%d')
